@@ -12,6 +12,30 @@ import re
 import io
 import json
 import win32com.client
+import colorama
+from colorama import init, deinit, Fore, Back, Style
+
+init(autoreset=True)
+
+def supports_ansi():
+    """
+    检查终端是否支持ANSI转义序列
+    """
+    if os.name == 'nt':
+        return sys.getwindowsversion().major >= 10 and sys.getwindowsversion().build >= 14393
+    return True
+
+def print_colored(text, color_code=None):
+    """
+    根据终端支持情况打印彩色或普通文本
+    """
+    if supports_ansi():
+        if color_code:
+            print(color_code + text + Style.RESET_ALL)
+        else:
+            print(text)
+    else:
+        print(text)
 
 # 导入主脚本所需副模块
 import GIMI_ModInstallation  # 导入GIMI_ModInstallation模块
@@ -19,7 +43,7 @@ from Furina_base64_PNG import base64_image_string  # 使用base64模块图像资
 import JianTingYuanShen  # 导入JianTingYuanShen模块
 
 print("""
-\x1b[1;97m《《《《《\x1b[0m \x1b[1;4;97;96mGIMI·Mod-Manager.exe 版本:2.0.27.20250318\x1b[0m \x1b[1;97m》》》》》\x1b[0m
+\x1b[1;97m《《《《《\x1b[0m \x1b[1;4;97;96mGIMI·Mod-Manager.exe 版本:2.0.28.20250320\x1b[0m \x1b[1;97m》》》》》\x1b[0m
 
 \x1b[1;96mGIMI·Mod-Manager\x1b[0m:\x1b[1;97m"\x1b[0m\x1b[4m利用终端+GUI界面按钮交互以获取您所需的功能(最佳运行分辨率\x1b[4;97m1920*1080\x1b[0m\x1b[4m)\x1b[0m\x1b[1;97m"\x1b[0m
 
@@ -195,6 +219,10 @@ def translate_to_english_with_color(text):
         # 性别:{ 男,女,未知 }
         # 武器类型:{ 单手剑,双手剑,弓,长柄,法器,未知 }
         # 品质:{ 五星金品,四星紫品,未知 }
+"""
+        "": {"name": "", "country": "", "element": "", "body_type": "", "gender": "",
+                 "weapon": "", "quality": "", "numbering": ""},
+"""
         "安柏": {"name": "Amber", "country": "蒙德", "element": "火元素", "body_type": "少女", "gender": "女",
                  "weapon": "弓", "quality": "四星紫品", "numbering": "00001"},
         "安博": {"name": "Amber", "country": "蒙德", "element": "火元素", "body_type": "少女", "gender": "女",
@@ -632,6 +660,14 @@ def translate_to_english_with_color(text):
                      "weapon": "法器", "quality": "五星金品", "numbering": "00073"},
         "典狱长": {"name": "Wriothesley", "country": "枫丹", "element": "冰元素", "body_type": "成男", "gender": "男",
                    "weapon": "法器", "quality": "五星金品", "numbering": "00073"},
+        "牢大": {"name": "Wriothesley", "country": "枫丹", "element": "冰元素", "body_type": "成男", "gender": "男",
+                 "weapon": "法器", "quality": "五星金品", "numbering": "00073"},
+        "劳大": {"name": "Wriothesley", "country": "枫丹", "element": "冰元素", "body_type": "成男", "gender": "男",
+                 "weapon": "法器", "quality": "五星金品", "numbering": "00073"},
+        "牢达": {"name": "Wriothesley", "country": "枫丹", "element": "冰元素", "body_type": "成男", "gender": "男",
+                 "weapon": "法器", "quality": "五星金品", "numbering": "00073"},
+        "劳达": {"name": "Wriothesley", "country": "枫丹", "element": "冰元素", "body_type": "成男", "gender": "男",
+                 "weapon": "法器", "quality": "五星金品", "numbering": "00073"},
 
         "夏洛蒂": {"name": "Charlotte", "country": "枫丹", "element": "冰元素", "body_type": "少女", "gender": "女",
                    "weapon": "法器", "quality": "四星紫品", "numbering": "00074"},
@@ -723,6 +759,8 @@ def translate_to_english_with_color(text):
                  "weapon": "弓", "quality": "五星金品", "numbering": "00090"},
         "好大孙": {"name": "Ororon", "country": "纳塔", "element": "雷元素", "body_type": "成男", "gender": "男",
                    "weapon": "弓", "quality": "五星金品", "numbering": "00090"},
+        "哦洛伦": {"name": "Ororon", "country": "纳塔", "element": "雷元素", "body_type": "成男", "gender": "男",
+                   "weapon": "弓", "quality": "五星金品", "numbering": "00090"},
 
         "恰斯卡": {"name": "Chasca", "country": "纳塔", "element": "风元素", "body_type": "成女", "gender": "女",
                    "weapon": "弓", "quality": "五星金品", "numbering": "00091"},
@@ -793,14 +831,35 @@ def translate_to_english_with_color(text):
         "伊安姗": {"name": "Iansan", "country": "纳塔", "element": "雷元素", "body_type": "萝莉", "gender": "女",
                    "weapon": "长柄", "quality": "四星紫品", "numbering": "00097"},
 
+        "伊法": {"name": "Ifa", "country": "纳塔", "element": "风元素", "body_type": "成男", "gender": "男",
+                 "weapon": "未知", "quality": "未知", "numbering": "00098"},
+        "依法": {"name": "Ifa", "country": "纳塔", "element": "风元素", "body_type": "成男", "gender": "男",
+                 "weapon": "未知", "quality": "未知", "numbering": "00098"},
+
         "丝柯克": {"name": "Skirk", "country": "深渊", "element": "冰元素", "body_type": "成女", "gender": "女",
-                   "weapon": "单手剑", "quality": "五星金品", "numbering": "00098"},
+                   "weapon": "单手剑", "quality": "五星金品", "numbering": "00099"},
         "丝科克": {"name": "Skirk", "country": "深渊", "element": "冰元素", "body_type": "成女", "gender": "女",
-                   "weapon": "单手剑", "quality": "五星金品", "numbering": "00098"},
+                   "weapon": "单手剑", "quality": "五星金品", "numbering": "00099"},
         "斯柯克": {"name": "Skirk", "country": "深渊", "element": "冰元素", "body_type": "成女", "gender": "女",
-                   "weapon": "单手剑", "quality": "五星金品", "numbering": "00098"},
+                   "weapon": "单手剑", "quality": "五星金品", "numbering": "00099"},
         "斯科克": {"name": "Skirk", "country": "深渊", "element": "冰元素", "body_type": "成女", "gender": "女",
-                   "weapon": "单手剑", "quality": "五星金品", "numbering": "00098"},
+                   "weapon": "单手剑", "quality": "五星金品", "numbering": "00099"},
+
+        "艾柯菲": {"name": "未知(暂无)", "country": "枫丹", "element": "未知", "body_type": "少女", "gender": "女",
+                   "weapon": "长枪", "quality": "五星金品", "numbering": "00100"},
+
+        "塔利雅": {"name": "Dahlia", "country": "蒙德", "element": "水元素", "body_type": "少年", "gender": "男",
+                   "weapon": "法器", "quality": "四星紫品", "numbering": "00101"},
+        "塔利娅": {"name": "Dahlia", "country": "蒙德", "element": "水元素", "body_type": "少年", "gender": "男",
+                   "weapon": "法器", "quality": "四星紫品", "numbering": "00101"},
+        "塔利亚": {"name": "Dahlia", "country": "蒙德", "element": "水元素", "body_type": "少年", "gender": "男",
+                   "weapon": "法器", "quality": "四星紫品", "numbering": "00101"},
+        "塔莉雅": {"name": "Dahlia", "country": "蒙德", "element": "水元素", "body_type": "少年", "gender": "男",
+                   "weapon": "法器", "quality": "四星紫品", "numbering": "00101"},
+        "塔莉娅": {"name": "Dahlia", "country": "蒙德", "element": "水元素", "body_type": "少年", "gender": "男",
+                   "weapon": "法器", "quality": "四星紫品", "numbering": "00101"},
+        "塔莉亚": {"name": "Dahlia", "country": "蒙德", "element": "水元素", "body_type": "少年", "gender": "男",
+                   "weapon": "法器", "quality": "四星紫品", "numbering": "00101"},
 
         "空": {"name": "Aether", "country": "未知", "element": "全元素", "body_type": "少年", "gender": "男",
                "weapon": "单手剑", "quality": "五星金品", "numbering": "99999"},
@@ -935,7 +994,7 @@ def main():
     initialize_db()
 
     window = tk.Tk()
-    window.title('GIMI·Mod-Manager 版本:2.0.27.20250318')
+    window.title('GIMI·Mod-Manager 版本:2.0.28.20250320')
     window.geometry("190x320")
 
     background_image = load_background_image(window)
