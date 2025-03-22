@@ -33,6 +33,8 @@ class DLLHandler(FileSystemEventHandler):
                 if os.path.exists(self.dll_path):
                     os.remove(self.dll_path)
                     print(f"\x1b[4;94m防15-4001程序\x1b[0m:已删除:{self.dll_path}")
+                else:
+                    print(f"\x1b[4;94m防15-4001程序\x1b[0m:目标文件不存在:{self.dll_path}")
                 if os.path.exists(self.source_dll):
                     shutil.copy2(self.source_dll, self.mod_gimi_dir)
                     print(f"\x1b[4;94m防15-4001程序\x1b[0m:已将{self.source_dll}复制到:{self.mod_gimi_dir}")
@@ -60,7 +62,10 @@ def start_monitor(genshin_path):
                 break
     except KeyboardInterrupt:
         observer.stop()
-    observer.join()
+    except Exception as e:
+        print(f"\x1b[4;94m防15-4001程序\x1b[0m:监听过程中发生错误:\x1b[91m{e}\x1b[0m")
+    finally:
+        observer.join()
 
 
 def run_jian_ting_yuan_shen(genshin_path):
@@ -84,7 +89,12 @@ def run_jian_ting_yuan_shen(genshin_path):
     # 确保模组目录存在
     mod_gimi_dir = os.path.join(base_path, "Mod", "GIMI")
     if not os.path.exists(mod_gimi_dir):
-        os.makedirs(mod_gimi_dir)
+        try:
+            os.makedirs(mod_gimi_dir)
+            print(f"\x1b[4;94m防15-4001程序\x1b[0m:已创建模组目录:{mod_gimi_dir}")
+        except Exception as e:
+            print(f"\x1b[4;94m防15-4001程序\x1b[0m:创建模组目录时出错:\x1b[91m{e}\x1b[0m")
+            return
 
     # 删除模组目录中的 nvapi64.dll 文件
     dll_path = os.path.join(mod_gimi_dir, "nvapi64.dll")
@@ -94,6 +104,8 @@ def run_jian_ting_yuan_shen(genshin_path):
             print(f"\x1b[4;94m防15-4001程序\x1b[0m:已删除:{dll_path}")
         except Exception as e:
             print(f"\x1b[4;94m防15-4001程序\x1b[0m:删除\x1b[97mdll\x1b[0m文件时出错:\x1b[91m{e}\x1b[0m")
+    else:
+        print(f"\x1b[4;94m防15-4001程序\x1b[0m:目标\x1b[97mdll\x1b[0m文件不存在:{dll_path}")
 
     # 启动监听线程
     thread = threading.Thread(target=start_monitor, args=(genshin_path,))

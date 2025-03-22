@@ -1,8 +1,12 @@
+# GI·Mod-Manager.py
+from colorama import init, deinit, Fore, Back, Style
 from PIL import Image, ImageTk
 from tkinter import filedialog
 import tkinter as tk
 import webbrowser
 import subprocess
+import pywintypes
+import colorama
 import sqlite3
 import base64
 import shutil
@@ -12,10 +16,9 @@ import re
 import io
 import json
 import win32com.client
-import colorama
-from colorama import init, deinit, Fore, Back, Style
 
 init(autoreset=True)
+
 
 def supports_ansi():
     """
@@ -24,6 +27,7 @@ def supports_ansi():
     if os.name == 'nt':
         return sys.getwindowsversion().major >= 10 and sys.getwindowsversion().build >= 14393
     return True
+
 
 def print_colored(text, color_code=None):
     """
@@ -37,10 +41,14 @@ def print_colored(text, color_code=None):
     else:
         print(text)
 
+
 # 导入主脚本所需副模块
 import GIMI_ModInstallation  # 导入GIMI_ModInstallation模块
-from Furina_base64_PNG import base64_image_string  # 使用base64模块图像资源硬编码加载程序UI美化
+from Furina_base64_PNG import base64_Furina_string
+from Citlali_base64_PNG import base64_Citlali_string  # 新增 Citlali 背景模块
 import JianTingYuanShen  # 导入JianTingYuanShen模块
+from Manager_URL import ModManager  # 导入Manager_URL模块
+import Set_up_beautification  # 导入Set_up_beautification模块
 
 print("""
 \x1b[1;97m《《《《《\x1b[0m \x1b[1;4;97;96mGIMI·Mod-Manager.exe 版本:2.0.28.20250320\x1b[0m \x1b[1;97m》》》》》\x1b[0m
@@ -63,9 +71,11 @@ target_mods_folder = "Mod\\GIMI\\Mods"
 db_file_path = "GIMI·Mod-Manager_WAY.db"
 config_file_path = "Mod\\XXMI Launcher Config.json"
 
+
 # 获取程序自身所在文件夹路径
 def get_self_folder_path():
     return os.path.dirname(os.path.abspath(sys.argv[0]))
+
 
 # 初始化数据库
 def initialize_db():
@@ -88,6 +98,7 @@ def initialize_db():
     conn.commit()
     conn.close()
 
+
 # 更新图片路径
 def update_image_path(image_name, new_path):
     conn = sqlite3.connect(db_file_path)
@@ -98,6 +109,7 @@ def update_image_path(image_name, new_path):
     """, (image_name, new_path))
     conn.commit()
     conn.close()
+
 
 def get_image_path_from_db(image_name):
     conn = sqlite3.connect(db_file_path)
@@ -112,6 +124,7 @@ def get_image_path_from_db(image_name):
     else:
         return None
 
+
 # 保存游戏设置到数据库
 def save_game_setting(setting_name, setting_value):
     conn = sqlite3.connect(db_file_path)
@@ -122,6 +135,7 @@ def save_game_setting(setting_name, setting_value):
     """, (setting_name, setting_value))
     conn.commit()
     conn.close()
+
 
 # 获取游戏设置从数据库
 def get_game_setting(setting_name):
@@ -137,10 +151,16 @@ def get_game_setting(setting_name):
     else:
         return None
 
+
 def load_background_image(window, width=1292, height=646):
     try:
-        # 从64进制字符串加载图片
-        image_data = base64.b64decode(base64_image_string)
+        # 根据设置选择背景图像
+        background_setting = get_game_setting("background")
+        if background_setting == "Citlali":
+            image_data = base64.b64decode(base64_Citlali_string)
+        else:
+            image_data = base64.b64decode(base64_Furina_string)
+
         img = Image.open(io.BytesIO(image_data))
         img = img.resize((width, height), Image.Resampling.LANCZOS)
         return ImageTk.PhotoImage(img)
@@ -149,6 +169,7 @@ def load_background_image(window, width=1292, height=646):
 """)
         return None
 
+
 def set_background_image(window, image):
     if image:
         background_label = tk.Label(window, image=image)
@@ -156,19 +177,10 @@ def set_background_image(window, image):
         return background_label
     return None
 
+
 def handle_url_view(window):
     url = base_url + "_sSearchString=Genshin+Impact&_idGameRow=8552"
     print(f"原神Mods蕉网网址为:\n{url}")
-
-
-def handle_update_urls(window):
-    if os.path.exists(txt_file_path):
-        with open(txt_file_path, "r", encoding="utf-8") as file:
-            content = file.read()
-            print("\n")
-            print(content)
-    else:
-        print("\x1b[91m文件意外丢失·请重新运行程序\x1b[0m!")
 
 
 def handle_lazy_search(window):
@@ -209,6 +221,7 @@ def handle_lazy_search(window):
     # 按下回车键触发确认操作
     input_window.bind('<Return>', lambda event: confirm_input())
 
+
 def translate_to_english_with_color(text):
     # 定义角色名翻译映射
     translation_map = {
@@ -219,10 +232,10 @@ def translate_to_english_with_color(text):
         # 性别:{ 男,女,未知 }
         # 武器类型:{ 单手剑,双手剑,弓,长柄,法器,未知 }
         # 品质:{ 五星金品,四星紫品,未知 }
-"""
-        "": {"name": "", "country": "", "element": "", "body_type": "", "gender": "",
-                 "weapon": "", "quality": "", "numbering": ""},
-"""
+        """
+                "": {"name": "", "country": "", "element": "", "body_type": "", "gender": "",
+                       "weapon": "", "quality": "", "numbering": ""},
+        """
         "安柏": {"name": "Amber", "country": "蒙德", "element": "火元素", "body_type": "少女", "gender": "女",
                  "weapon": "弓", "quality": "四星紫品", "numbering": "00001"},
         "安博": {"name": "Amber", "country": "蒙德", "element": "火元素", "body_type": "少女", "gender": "女",
@@ -913,10 +926,11 @@ def translate_to_english_with_color(text):
 
 def create_menus(window):
     # 创建独立按钮
-    btn_option1 = tk.Button(window, text="修复Mods以及启动值项", command=lambda: open_repair_window(window))
+    btn_option1 = tk.Button(window, text="修复Mod或设置程序",
+                            command=lambda: Set_up_beautification.open_repair_window(window))
     btn_option1.place(x=20, y=24, width=150, height=30)
 
-    btn_option2 = tk.Button(window, text="查看我的Mods网址信息", command=lambda: handle_update_urls(window))
+    btn_option2 = tk.Button(window, text="Mod管理以及配置信息", command=lambda: open_mod_manager(window, btn_option2))
     btn_option2.place(x=20, y=64, width=150, height=30)
 
     btn_option3 = tk.Button(window, text="懒人翻译&快速生成网址", command=lambda: handle_lazy_search(window))
@@ -925,16 +939,17 @@ def create_menus(window):
     btn_game_settings = tk.Button(window, text="启动游戏以及相关设置", command=lambda: open_game_settings(window))
     btn_game_settings.place(x=20, y=144, width=150, height=30)
 
-    btn_install_mods = tk.Button(window, text="一键安装我的Mods资源",
+    btn_install_mods = tk.Button(window, text="一键安装我的Mod资源",
                                  command=lambda: GIMI_ModInstallation.handle_install_mods(window))
     btn_install_mods.place(x=20, y=184, width=150, height=30)
 
-    btn_custom_install = tk.Button(window, text="自定义Mods资源的安装",
+    btn_custom_install = tk.Button(window, text="自定义Mod资源的安装",
                                    command=lambda: GIMI_ModInstallation.handle_custom_install(window))
     btn_custom_install.place(x=20, y=224, width=150, height=30)
 
     btn_exit = tk.Button(window, text="退出程序", command=lambda: handle_exit(window))
     btn_exit.place(x=20, y=264, width=150, height=30)
+
 
 def handle_exit(window):
     confirm_window = tk.Toplevel(window)
@@ -960,34 +975,6 @@ def handle_exit(window):
 def exit_program(window, confirm_window):
     confirm_window.destroy()
     window.destroy()
-
-
-def handle_fix_mods(window):
-    # 获取程序自身所在路径
-    current_dir = get_self_folder_path()
-    # 构建修复工具的路径
-    fix_tool_path = os.path.join(current_dir, "54FixReleaseVersion.exe")
-
-    # 检查修复工具是否存在
-    if not os.path.exists(fix_tool_path):
-        # 尝试在 Mod 文件夹下查找
-        mod_dir = os.path.join(current_dir, "Mod")
-        if os.path.exists(mod_dir):
-            fix_tool_path = os.path.join(mod_dir, "54FixReleaseVersion.exe")
-        else:
-            fix_tool_path = None
-
-    # 如果找到修复工具
-    if fix_tool_path and os.path.exists(fix_tool_path):
-        try:
-            subprocess.run([fix_tool_path], check=True)
-            print("")
-            print("\x1b[1;96mGIMI·Mod-Manager\x1b[0m:\x1b[4;94m54FixReleaseVersion.exe\x1b[0m的文件修复任务运行已结束")
-            print("")
-        except subprocess.CalledProcessError as e:
-            print(f"运行修复程序时出错:“\x1b[91m{e}\x1b[0m”")
-    else:
-        print("\x1b[91m修复失败\x1b[0m,相关修复组件或程序已丢失")
 
 
 def main():
@@ -1042,6 +1029,7 @@ def main():
     create_menus(window)
     window.mainloop()
 
+
 # 从XXMI Launcher Config.json文件中读取原神安装路径
 def get_genshin_path_from_config():
     try:
@@ -1059,6 +1047,7 @@ def get_genshin_path_from_config():
         print(f"从配置文件读取原神安装路径时出错:“\x1b[91m{e}\x1b[0m”")
         return None
 
+
 def find_xxmi_launcher():
     try:
         current_dir = get_self_folder_path()
@@ -1070,6 +1059,7 @@ def find_xxmi_launcher():
         print(f"查找XXMI Launcher.exe时出错:“\x1b[91m{e}\x1b[0m”")
         return None
 
+
 # 检查权限并提升
 def check_and_elevate_privileges(program_path):
     try:
@@ -1078,7 +1068,8 @@ def check_and_elevate_privileges(program_path):
     except Exception as e:
         root = tk.Tk()
         root.withdraw()  # 隐藏主窗口
-        response = tk.messagebox.askquestion("权限提升请求",f'启动{os.path.basename(program_path)}程序时出现权限问题,请求权限提升\n1.点击"是"将提升本次操作权限\n2.点击"否"将取消本次运行操作!')
+        response = tk.messagebox.askquestion("权限提升请求",
+                                             f'启动{os.path.basename(program_path)}程序时出现权限问题,请求权限提升\n1.点击"是"将提升本次操作权限\n2.点击"否"将取消本次运行操作!')
         if response == "yes":
             try:
                 subprocess.Popen(["runas", "/user:Administrator", program_path], shell=True)
@@ -1089,6 +1080,7 @@ def check_and_elevate_privileges(program_path):
         else:
             print("用户已禁止权限提升请求")
             return False
+
 
 def open_game_settings(window):
     settings_window = tk.Toplevel(window)
@@ -1159,12 +1151,14 @@ def open_game_settings(window):
             mod_loader_var.set(xxmi_path)
             save_game_setting("mod_loader_path", xxmi_path)
         else:
-            path = filedialog.askopenfilename(title="选择原神模组加载器", filetypes=[("可执行文件", "XXMI Launcher.exe")])
+            path = filedialog.askopenfilename(title="选择原神模组加载器",
+                                              filetypes=[("可执行文件", "XXMI Launcher.exe")])
             if path:
                 mod_loader_var.set(path)
                 save_game_setting("mod_loader_path", path)
 
-    mod_loader_browse_btn = tk.Button(mod_loader_frame, text="定位路径", command=browse_mod_loader_path, width=8, height=1)
+    mod_loader_browse_btn = tk.Button(mod_loader_frame, text="定位路径", command=browse_mod_loader_path, width=8,
+                                      height=1)
     mod_loader_browse_btn.pack(side=tk.LEFT, padx=5)
 
     # Mods资源存放目录
@@ -1185,7 +1179,8 @@ def open_game_settings(window):
         if os.path.exists(mods_path):
             os.startfile(mods_path)
         else:
-            print("\x1b[91m模组加载器相关文件夹不存在或已丢失\x1b[0m,\x1b[91m请先运行\x1b[94mXXMI\x1b[91m程序修复相关文件\x1b[0m!")
+            print(
+                "\x1b[91m模组加载器相关文件夹不存在或已丢失\x1b[0m,\x1b[91m请先运行\x1b[94mXXMI\x1b[91m程序修复相关文件\x1b[0m!")
 
     mods_folder_btn = tk.Button(mods_folder_frame, text="打开目录", command=open_mods_folder, width=8, height=1)
     mods_folder_btn.pack(side=tk.LEFT, padx=5)
@@ -1204,7 +1199,8 @@ def open_game_settings(window):
         mod_loader_path = mod_loader_var.get()
 
         if not mod_loader_path or mod_loader_path == "未找到模组加载器XXMI,请手动定位":
-            print("\x1b[91m出现错误配置\x1b[94mXXMI\x1b[0m,\x1b[91m请检查模组加载器的安装路径是否处于本程序同一目录下\x1b[0m!")
+            print(
+                "\x1b[91m出现错误配置\x1b[94mXXMI\x1b[0m,\x1b[91m请检查模组加载器的安装路径是否处于本程序同一目录下\x1b[0m!")
             return
 
         # 检查是否开启防报错功能
@@ -1230,97 +1226,20 @@ def open_game_settings(window):
 
     settings_window.grab_set()
 
-# 新增功能：修复Mods以及启动值项
-def open_repair_window(window):
-    repair_window = tk.Toplevel(window)
-    repair_window.title("选择功能")
-    repair_window.geometry("350x125")
-    repair_window.resizable(False, False)
+# 打开模组管理器
+def open_mod_manager(window, button):
+    button.config(state=tk.DISABLED)  # 禁用按钮
+    mod_manager_window = tk.Toplevel(window)
+    mod_manager_window.title("GIMI·Mod-Manager")
+    mod_manager_window.geometry("1000x600")
 
-    label = tk.Label(repair_window, text="请选择您所需的修复项:")
-    label.pack(pady=20)
+    def on_closing():
+        mod_manager_window.destroy()
+        button.config(state=tk.NORMAL)  # 恢复按钮状态
 
-    def close_repair_window():
-        repair_window.destroy()
+    mod_manager_window.protocol("WM_DELETE_WINDOW", on_closing)
+    app = ModManager(mod_manager_window)
 
-    def repair_mods():
-        close_repair_window()
-        handle_fix_mods(window)
-
-    # 获取防报错功能状态
-    conn = sqlite3.connect(db_file_path)
-    cursor = conn.cursor()
-    cursor.execute("SELECT setting_value FROM game_settings WHERE setting_name = 'error_prevention'")
-    result = cursor.fetchone()
-    conn.close()
-    if result and result[0] == "on":
-        btn_text = "关闭防报错"
-    else:
-        btn_text = "开启防报错"
-
-    btn_frame = tk.Frame(repair_window)
-    btn_frame.pack(pady=10)
-
-    repair_mods_btn = tk.Button(btn_frame, text="修复模组资源", command=lambda: repair_mods(), width=12, height=1)
-    repair_mods_btn.pack(side=tk.LEFT, padx=10)
-
-    error_prevention_btn = tk.Button(btn_frame, text=btn_text, command=lambda: toggle_error_prevention(window, error_prevention_btn), width=12, height=1)
-    error_prevention_btn.pack(side=tk.LEFT, padx=10)
-
-    cancel_btn = tk.Button(btn_frame, text="退出界面", command=close_repair_window, width=10, height=1)
-    cancel_btn.pack(side=tk.LEFT, padx=20)
-
-    repair_window.grab_set()
-
-# 切换防报错功能状态
-def toggle_error_prevention(window, btn):
-    conn = sqlite3.connect(db_file_path)
-    cursor = conn.cursor()
-    cursor.execute("SELECT setting_value FROM game_settings WHERE setting_name = 'error_prevention'")
-    result = cursor.fetchone()
-    if result and result[0] == "on":
-        # 关闭防报错功能
-        cursor.execute("UPDATE game_settings SET setting_value = 'off' WHERE setting_name = 'error_prevention'")
-        print("防报错功能现处于关闭状态")
-        btn.config(text="开启防报错")
-    else:
-        # 开启防报错功能
-        cursor.execute("INSERT OR REPLACE INTO game_settings (setting_name, setting_value) VALUES ('error_prevention', 'on')")
-        print("防报错功能现处于开启状态")
-        btn.config(text="关闭防报错")
-    conn.commit()
-    conn.close()
-
-# 创建快捷方式函数
-def create_shortcut_with_args(executable_path, arguments):
-    """
-    在目标程序所在目录中创建快捷方式并设置目标路径和参数
-    :param executable_path: 目标程序的完整路径
-    :param arguments: 传递给程序的命令行参数
-    """
-    # 确保目标路径存在
-    if not os.path.exists(executable_path):
-        raise FileNotFoundError(f"目标程序路径不存在:{executable_path}")
-    # 获取目标程序所在目录
-    executable_dir = os.path.dirname(executable_path)
-    # 快捷方式保存路径
-    shortcut_path = os.path.join(executable_dir, "YuanShen - 快捷方式.lnk")
-    # 创建Shell对象
-    shell = win32com.client.Dispatch("WScript.Shell")
-    # 创建快捷方式
-    shortcut = shell.CreateShortcut(shortcut_path)
-    # 设置快捷方式的目标路径
-    shortcut.Targetpath = executable_path
-    # 设置命令行参数
-    shortcut.Arguments = arguments
-
-    # 保存快捷方式
-    try:
-        shortcut.Save()
-        print("")
-        print(f"1.已创建新修改目标值的快捷方式至\x1b[94m>\x1b[4;97m{shortcut_path}\x1b[0m\n2.\x1b[94mXXMI\x1b[0m启动项值也已成功修改为:\x1b[4;97muse_moblie_platform -iscloud 1 -platform_type CLOUD_THIRD_PARTY_PC\x1b[0m")
-    except pywintypes.com_error as e:
-        print(f"保存快捷方式时发生错误:“\x1b[91m{e}\x1b[0m”")
 
 if __name__ == "__main__":
     main()

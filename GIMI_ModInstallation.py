@@ -3,8 +3,8 @@ import shutil
 import tkinter as tk
 from tkinter import filedialog, messagebox
 import zipfile
-import py7zr
 import rarfile
+import py7zr
 import lzma
 import tarfile
 import sys
